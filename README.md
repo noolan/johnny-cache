@@ -1,5 +1,5 @@
-SearchLight
-===========
+Johnny Cache
+============
 
 Simple localStorage interface with timestamp based filtering and management
 
