@@ -64,6 +64,12 @@
       return this
     },
 
+    take (key) {
+      var value = this.get(key)
+      this.remove(key)
+      return value
+    },
+
     /// collection filtering methods
 
     all () {
