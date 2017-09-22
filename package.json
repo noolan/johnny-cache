@@ -1,0 +1,36 @@
+{
+  "name": "johnny-cache",
+  "version": "0.2.0",
+  "description": "Cache important data with the Script in Black",
+  "keywords": [
+    "cache",
+    "storage",
+    "localStorage",
+    "Johnny Cash"
+  ],
+  "repository": "noolan/johnny-cache",
+  "author": {
+    "name": "Nolan Neustaeter",
+    "email": "nolan@neustaeter.ca",
+    "url": "nolan.neustaeter.ca"
+  },
+  "main": "dist/johnny-cache.min.js",
+  "browser": "dist/johnny-cache.min.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "gulp",
+    "lint": "gulp standard",
+    "docs": "node_modules/.bin/jsdoc -c ./jsdoc.json --readme ./README.md"
+  },
+  "devDependencies": {
+    "babel-core": "^6.22.1",
+    "docdash": "^0.4.0",
+    "gulp": "^3.9.1",
+    "gulp-babili": "^0.1.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-standard": "^9.0.0",
+    "jsdoc": "^3.4.3",
+    "standard": "^9.0.2"
+  },
+  "dependencies": {}
+}
