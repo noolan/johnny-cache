@@ -8,11 +8,11 @@ Installation
 
 **NPM**
 
-    npm install johnny-cache
+    npm install johnny-cache-ls
 
 **CDN**
 
-    <script src="https://unpkg.com/johnny-cache"></script>
+    <script src="https://unpkg.com/johnny-cache-ls"></script>
 
 
 Usage
@@ -22,7 +22,7 @@ _Note:
 
 **ES6 Style Import**
 
-    import JohnnyCache from 'johnny-cache';
+    import JohnnyCache from 'johnny-cache-ls';
     let cache = new JohnnyCache()
     cache.set('stage-clothes', { color: black, coatLength: 'long' })
     console.log(cache.get('stage-clothes'))
