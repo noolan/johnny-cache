@@ -378,8 +378,7 @@
     window.JohnnyCache = init
   }
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  })
-  exports['default'] = init
+  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports.default = init
+  }
 })
