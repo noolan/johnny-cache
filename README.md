@@ -12,7 +12,7 @@ Installation
 
 **CDN**
 
-    <script src="https://unpkg.com/johnny-cache-ls"></script>
+    <script type="module" src="https://unpkg.com/johnny-cache-ls"></script>
 
 
 Usage

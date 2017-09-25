@@ -1,6 +1,6 @@
 {
   "name": "johnny-cache-ls",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Cache important data with the Script in Black",
   "keywords": [
     "cache",
@@ -20,6 +20,7 @@
   "scripts": {
     "build": "gulp",
     "lint": "gulp standard",
+    "dev": "node dev.js",
     "docs": "node_modules/.bin/jsdoc -c ./jsdoc.json --readme ./README.md"
   },
   "devDependencies": {
@@ -30,6 +31,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-standard": "^9.0.0",
     "jsdoc": "^3.4.3",
+    "node-static": "^0.7.10",
     "standard": "^9.0.2"
   },
   "dependencies": {}

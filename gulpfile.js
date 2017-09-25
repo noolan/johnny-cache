@@ -39,6 +39,7 @@ gulp.task(
     )
     .pipe(rename({ extname: '.min.js' }))
     .pipe(gulp.dest(dest))
-})
+  }
+)
 
 gulp.task('default', [ 'standard', 'js' ])

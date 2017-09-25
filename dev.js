@@ -1,0 +1,11 @@
+var nodeStatic = require('node-static')
+
+var fileServer = new nodeStatic.Server('./')
+
+require('http').createServer(function (request, response) {
+  request.addListener('end', function () {
+    fileServer.serve(request, response)
+  }).resume()
+}).listen(8086)
+
+console.log('listening on 8086...')

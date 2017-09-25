@@ -41,20 +41,21 @@ JohnnyCache.prototype = {
         this._setUpdated(key, dt)
       }
     } else {
-      this._createMeta(dt)
+      this._createMeta(key, dt)
     }
 
     return this
   },
 
   has (key) {
-    return this.get(key) !== null
+    return this.get(key, null, true) !== null
   },
 
   remove (key) {
     try {
-      this._store.removeItem(key)
+      this._store.removeItem(this.prefix + '-' + key)
       this.meta.delete(key)
+      this._delaySaveMeta()
     } catch (e) {
       console.error(e)
     }
@@ -129,11 +130,18 @@ JohnnyCache.prototype = {
     return this
   },
 
+  filterUsing (fn) {
+    this._filterFn = fn
+    this._dirty = true
+    return this
+  },
+
   get isFiltered () {
     return (
       this._createdBefore || this._createdAfter ||
       this._readBefore || this._readAfter ||
-      this._updatedBefore || this._updatedAfter
+      this._updatedBefore || this._updatedAfter ||
+      this._filterFn
     )
   },
 
@@ -143,6 +151,24 @@ JohnnyCache.prototype = {
     if (this._dirty) {
       this._matches = new Map()
       for (var [k, v] of this.meta) {
+        // user defined filter function
+        // function is passed (key, value, meta)
+        if (
+          this._filterFn &&
+          typeof this._filterFn === 'function' &&
+          !this._filterFn(
+            k,
+            this.get(k, null, true),
+            {
+              created: v.c,
+              read: v.r,
+              updated: v.u
+            }
+          )
+        ) {
+          continue
+        }
+        // meta datetime filters
         if (this._createdBefore && v.c >= this._createdBefore) {
           continue
         }
@@ -161,6 +187,7 @@ JohnnyCache.prototype = {
         if (this._updatedAfter && v.u <= this._updatedAfter) {
           continue
         }
+
         this._matches.set(k, this.get(k, null, true))
       }
       this._dirty = false
@@ -201,34 +228,38 @@ JohnnyCache.prototype = {
   },
 
   get length () {
-    return this.matches.size()
+    return this.matches.size
   },
 
   get stats () {
-    var limit = 5
-    var j$MB = 0
-    var totalMB = 0
+    var limit = 5 * 1024
+    var j$KB = 0
+    var totalKB = 0
     var j$Entries = 0
     var totalEntries = 0
-    var tempMB = 0
+    var tempKB = 0
     for (var k in this._store) {
-      tempMB = (this._store[k].length * 2) / 1024 / 1024
-      totalMB += tempMB
+      tempKB = (this._store[k].length * 2) / 1024
+      totalKB += tempKB
       totalEntries++
       if (k.substring(0, this.prefix.length) === this.prefix) {
-        j$MB += tempMB
+        j$KB += tempKB
         j$Entries++
       }
     }
     return {
-      total: limit.toFixed(2) + ' MB',
-      used: totalMB.toFixed(2) + ' MB',
-      remaining: (limit - totalMB).toFixed(2) + ' MB',
-      used_j$: j$MB.toFixed(2) + ' MB',
-      used_other: (totalMB - j$MB).toFixed(2) + ' MB',
-      entries: totalEntries,
-      entries_j$: j$Entries,
-      entries_other: totalEntries - j$Entries
+      size: {
+        total: limit + ' KB',
+        used: totalKB + ' KB',
+        available: (limit - totalKB) + ' KB',
+        JohnnyCache: j$KB + ' KB',
+        other: (totalKB - j$KB) + ' KB'
+      },
+      entries: {
+        total: totalEntries,
+        JohnnyCache: j$Entries,
+        other: totalEntries - j$Entries
+      }
     }
   },
 
@@ -252,9 +283,9 @@ JohnnyCache.prototype = {
           this.meta.set(
             meta[i].k,
             {
-              c: new Date(meta[i].c),
-              u: new Date(meta[i].u),
-              r: new Date(meta[i].r)
+              c: meta[i].c ? new Date(meta[i].c) : meta[i].c,
+              r: meta[i].r ? new Date(meta[i].r) : meta[i].r,
+              u: meta[i].u ? new Date(meta[i].u) : meta[i].u
             }
           )
         }
@@ -284,13 +315,19 @@ JohnnyCache.prototype = {
     if (entry) {
       dt = this._date(dt)
       entry[field] = dt
-      this.metaTimeout = window.setTimeout(
-        this._saveMeta.bind(this),
-        this.metaDelay
-      )
+
+      this._delaySaveMeta()
+
       this._dirty = true
     }
     return this
+  },
+
+  _delaySaveMeta () {
+    this.metaTimeout = window.setTimeout(
+      this._saveMeta.bind(this),
+      this.metaDelay
+    )
   },
 
   _saveMeta () {
@@ -298,9 +335,9 @@ JohnnyCache.prototype = {
     for (var [k, v] of this.meta) {
       list.push({
         k: k,
-        c: v.c.valueOf(),
-        r: v.r.valueOf(),
-        u: v.u.valueOf()
+        c: v.c instanceof Date ? v.c.valueOf() : v.c,
+        r: v.r instanceof Date ? v.r.valueOf() : v.r,
+        u: v.u instanceof Date ? v.u.valueOf() : v.u
       })
     }
     try {
@@ -312,6 +349,9 @@ JohnnyCache.prototype = {
 
   _createMeta (k, dt) {
     this.meta.set(k, { r: null, c: dt, u: dt })
+
+    this._delaySaveMeta()
+
     this._dirty = true
   },
 
@@ -346,13 +386,14 @@ JohnnyCache.prototype = {
       this._createdAfter = null
       this._updatedBefore = null
       this._updatedAfter = null
+      this._filterFn = null
 
       this._dirty = true
     }
   }
 }
 
-export default function () {
+function init () {
   if (window && window.localStorage) {
     var j$ = new JohnnyCache()
 
@@ -371,3 +412,5 @@ export default function () {
     return null
   }
 }
+
+export default init
