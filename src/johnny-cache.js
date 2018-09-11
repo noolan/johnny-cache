@@ -3,7 +3,7 @@ JohnnyCache.prototype = {
   // public methods
   /// single property methods
 
-  get (key, def, silent) {
+  get (key, { defaultValue, silent, withMeta }) {
     var item = null
     try {
       item = this._store.getItem(this.prefix + '-' + key)
@@ -12,16 +12,30 @@ JohnnyCache.prototype = {
     }
 
     if (item === null) {
-      if (typeof def !== 'undefined') {
-        return def
+      if (typeof defaultValue !== 'undefined') {
+        return defaultValue
       } else {
         return null
       }
     } else {
-      if (!silent) {
+      if (silent) {
         this._setRead(key)
       }
-      return JSON.parse(item).val
+
+      if (withMeta) {
+        var value = JSON.parse(item).val
+        var meta = this._getMeta(key)
+        return {
+          meta: {
+            created: meta.c ? new Date(meta.c * 1000) : meta.c,
+            read: meta.r ? new Date(meta.r * 1000) : meta.r,
+            updated: meta.u ? new Date(meta.u * 1000) : meta.u
+          },
+          value
+        }
+      } else {
+        return JSON.parse(item).val
+      }
     }
   },
 
@@ -32,6 +46,7 @@ JohnnyCache.prototype = {
         this.prefix + '-' + key,
         JSON.stringify({ val: val })
       )
+      this._addGetter(key)
     } catch (e) {
       console.error(e)
     }
@@ -48,13 +63,14 @@ JohnnyCache.prototype = {
   },
 
   has (key) {
-    return this.get(key, null, true) !== null
+    return this.get(key, { default: null, silent: true }) !== null
   },
 
   remove (key) {
     try {
       this._store.removeItem(this.prefix + '-' + key)
       this.meta.delete(key)
+      this._removeGetter(key)
       this._delaySaveMeta()
     } catch (e) {
       console.error(e)
@@ -288,6 +304,7 @@ JohnnyCache.prototype = {
               u: meta[i].u ? new Date(meta[i].u) : meta[i].u
             }
           )
+          this._addGetter(meta[i].k)
         }
       } else {
         this._store.setItem(this.prefix + 'm', '[]')
@@ -355,6 +372,29 @@ JohnnyCache.prototype = {
     this._dirty = true
   },
 
+  _addGetter (key) {
+    if (key in this) {
+      console.log('JC: key already exists')
+    } else {
+      this._addGetter(key)
+      Object.defineProperty(
+        this,
+        key,
+        {
+          get: function () {
+            return this.get(key)
+          }
+        }
+      )
+    }
+  },
+
+  _removeGetter (key) {
+    if (!this._originalProperties.includes(key) && Object.getOwnPropertyNames(this).includes(key)) {
+      delete this[key]
+    }
+  },
+
   _date (dt) {
     if (!(dt instanceof Date)) {
       if (typeof dt !== 'undefined') {
@@ -403,6 +443,10 @@ function init () {
     j$._store = window.localStorage
     j$._matches = null
     j$._dirty = true
+
+    j$._originalProperties = null
+    j$._originalProperties = [ ...j$.keys(), ...JohnnyCache.prototype.keys() ]
+    console.log(j$._originalProperties)
 
     j$._initMeta()
     j$._resetFilters()
