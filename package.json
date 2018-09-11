@@ -17,8 +17,8 @@
     "email": "nolan@neustaeter.ca",
     "url": "nolan.neustaeter.ca"
   },
-  "main": "dist/johnny-cache.min.js",
-  "browser": "dist/johnny-cache.min.js",
+  "main": "dist/module.js",
+  "browser": "dist/umd.js",
   "license": "MIT",
   "scripts": {
     "build": "standard ./src/ && parcel build ./src/module.js ./src/polyfilled.js --out-dir ./dist --experimental-scope-hoisting && parcel build ./src/polyfilled.js --out-dir ./dist --out-file umd.js --global JohnnyCache",
