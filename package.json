@@ -4,8 +4,11 @@
   "description": "Cache important data with the Script in Black",
   "keywords": [
     "cache",
+    "caching",
     "storage",
     "localStorage",
+    "javascript",
+    "js",
     "Johnny Cash"
   ],
   "repository": "noolan/johnny-cache",
@@ -18,21 +21,18 @@
   "browser": "dist/johnny-cache.min.js",
   "license": "MIT",
   "scripts": {
-    "build": "gulp",
-    "lint": "gulp standard",
-    "dev": "node dev.js",
-    "docs": "node_modules/.bin/jsdoc -c ./jsdoc.json --readme ./README.md"
+    "build": "standard ./src/ && parcel build ./src/module.js ./src/polyfilled.js --out-dir ./dist --experimental-scope-hoisting && parcel build ./src/polyfilled.js --out-dir ./dist --out-file umd.js --global JohnnyCache",
+    "dev": "parcel serve ./dev/index.html --out-dir ./dev/output --port 1932 --open",
+    "docs": "node_modules/.bin/jsdoc -c ./jsdoc.json --readme ./README.md",
+    "lint": "standard ./src/"
   },
   "devDependencies": {
-    "babel-core": "^6.22.1",
     "docdash": "^0.4.0",
-    "gulp": "^3.9.1",
-    "gulp-babili": "^0.1.2",
-    "gulp-rename": "^1.2.2",
-    "gulp-standard": "^9.0.0",
     "jsdoc": "^3.4.3",
-    "node-static": "^0.7.10",
+    "parcel-bundler": "^1.9.7",
     "standard": "^9.0.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
+  }
 }

@@ -3,7 +3,10 @@ JohnnyCache.prototype = {
   // public methods
   /// single property methods
 
-  get (key, { defaultValue, silent, withMeta }) {
+  get (key, options = {}) {
+    let defaultValue = typeof options.defaultValue !== 'undefined' ? options.defaultValue : null
+    let silent = typeof options.silent !== 'undefined' ? options.silent : false
+    let withMeta = typeof options.withMeta !== 'undefined' ? options.withMeta : false
     var item = null
     try {
       item = this._store.getItem(this.prefix + '-' + key)
@@ -59,7 +62,7 @@ JohnnyCache.prototype = {
       this._createMeta(key, dt)
     }
 
-    return this
+    return val
   },
 
   has (key) {
@@ -164,8 +167,8 @@ JohnnyCache.prototype = {
   /// collection methods
 
   get matches () {
+    this._matches = new Map()
     if (this._dirty) {
-      this._matches = new Map()
       for (var [k, v] of this.meta) {
         // user defined filter function
         // function is passed (key, value, meta)
@@ -374,15 +377,18 @@ JohnnyCache.prototype = {
 
   _addGetter (key) {
     if (key in this) {
-      console.log('JC: key already exists')
+      // console.log('JC: key already exists')
     } else {
-      this._addGetter(key)
       Object.defineProperty(
         this,
         key,
         {
+          configurable: true,
           get: function () {
             return this.get(key)
+          },
+          set: function (val) {
+            return this.set(key, val)
           }
         }
       )
@@ -442,11 +448,12 @@ function init () {
 
     j$._store = window.localStorage
     j$._matches = null
-    j$._dirty = true
+    j$._dirty = false
 
     j$._originalProperties = null
-    j$._originalProperties = [ ...j$.keys(), ...JohnnyCache.prototype.keys() ]
-    console.log(j$._originalProperties)
+    j$._originalProperties = [ ...Object.getOwnPropertyNames(j$), ...Object.getOwnPropertyNames(JohnnyCache.prototype) ]
+    j$._dirty = true
+    window.JC = JohnnyCache
 
     j$._initMeta()
     j$._resetFilters()
