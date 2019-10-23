@@ -299,7 +299,7 @@ JohnnyCache.prototype = {
 
       if (meta) {
         meta = JSON.parse(meta)
-        for (var i = 0; i < meta.length; i++) {
+        for (let i = 0; i < meta.length; i++) {
           this.meta.set(
             meta[i].k,
             {
