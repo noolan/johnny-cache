@@ -319,7 +319,7 @@ JohnnyCache.prototype = {
       let key = ''
       let dirty = false
       const fullPrefix = `${this.prefix}-`
-      while ((key = this._store.key(i)) !== null) {
+      while ((key = this._store.key(i++)) !== null) {
         if (key.substring(0, this.prefix.length) === fullPrefix) {
           const k = key.substring(this.prefix.length)
           if (!this._metaExists(k)) {
