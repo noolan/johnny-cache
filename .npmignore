@@ -3,3 +3,4 @@
 .DS_Store
 dev/output
 node_modules
+*.code-workspace

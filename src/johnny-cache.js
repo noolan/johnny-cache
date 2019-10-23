@@ -296,6 +296,7 @@ JohnnyCache.prototype = {
     }
     try {
       var meta = this._store.getItem(this.prefix + 'm')
+
       if (meta) {
         meta = JSON.parse(meta)
         for (var i = 0; i < meta.length; i++) {
@@ -312,6 +313,26 @@ JohnnyCache.prototype = {
       } else {
         this._store.setItem(this.prefix + 'm', '[]')
       }
+
+      // check for items that don't have meta entries
+      let i = 0
+      let key = ''
+      let dirty = false
+      const fullPrefix = `${this.prefix}-`
+      while ((key = this._store.key(i)) !== null) {
+        if (key.substring(0, this.prefix.length) === fullPrefix) {
+          const k = key.substring(this.prefix.length)
+          if (!this._metaExists(k)) {
+            this._createMeta(k, this._date())
+            this._addGetter(k)
+            dirty = true
+          }
+        }
+      }
+      if (dirty) {
+        this._saveMeta()
+      }
+
     } catch (e) {
       console.error(e)
     }
@@ -344,7 +365,10 @@ JohnnyCache.prototype = {
   },
 
   _delaySaveMeta () {
-    this.metaTimeout = window.setTimeout(
+    if (this.metaTimeout) {
+      clearTimeout(this.metaTimeout)
+    }
+    this.metaTimeout = setTimeout(
       this._saveMeta.bind(this),
       this.metaDelay
     )
@@ -364,6 +388,10 @@ JohnnyCache.prototype = {
       this._store.setItem(this.prefix + 'm', JSON.stringify(list))
     } catch (e) {
       console.error(e)
+    }
+    if (this.metaTimeout) {
+      clearTimeout(this.metaTimeout)
+      this.metaTimeout = null
     }
   },
 
@@ -440,20 +468,24 @@ JohnnyCache.prototype = {
 }
 
 function init () {
-  if (window && window.localStorage) {
+  if (localStorage) {
     var j$ = new JohnnyCache()
 
     j$.prefix = 'J$'
     j$.metaDelay = 1000
 
-    j$._store = window.localStorage
+    j$._store = localStorage
     j$._matches = null
     j$._dirty = false
 
     j$._originalProperties = null
     j$._originalProperties = [ ...Object.getOwnPropertyNames(j$), ...Object.getOwnPropertyNames(JohnnyCache.prototype) ]
     j$._dirty = true
-    window.JC = JohnnyCache
+    if (window) {
+      window.J$ = JohnnyCache
+    } else if (worker) {
+      worker.J$ = JohnnyCache
+    }
 
     j$._initMeta()
     j$._resetFilters()
